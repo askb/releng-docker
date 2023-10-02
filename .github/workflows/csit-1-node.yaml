@@ -13,7 +13,7 @@ jobs:
 
     strategy:
       matrix:
-        test_suite: ["daexim", "distribution"]
+        test_suite: ["daexim", "distribution", "aaa"]
         # Define a matrix for different test suites
 
     services:
@@ -30,7 +30,9 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
         # Checkout the code repository
-
+      - name: Delay for 30 seconds
+        run: sleep 30
+        
       - name: Setup Jolokia for AAA
         if: matrix.test_suite == 'aaa'
         run: |
@@ -62,11 +64,7 @@ jobs:
           # Add the public key to the OpenDaylight container
           PUB_KEY=$(cat id_rsa.pub)
           docker exec odl-container bash -c "mkdir -p /home/user/.ssh && echo \"$PUB_KEY\" >> /home/user/.ssh/authorized_keys"
-
-      - name: Delay for 30 seconds
-        run: sleep 30
-        # Delay for 30 seconds
-
+      
       - name: Run Test
         run: |
           # Define test_suite variable based on the matrix
