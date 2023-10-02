@@ -64,7 +64,9 @@ jobs:
           # Add the public key to the OpenDaylight container
           PUB_KEY=$(cat id_rsa.pub)
           docker exec odl-container bash -c "mkdir -p /home/user/.ssh && echo \"$PUB_KEY\" >> /home/user/.ssh/authorized_keys"
-      
+      - name: tmp 
+        run: |
+          docker exec odl-container bash -c "cat /home/user/karaf-0.18.1/etc/org.jolokia.osgi.cfg"
       - name: Run Test
         run: |
           # Define test_suite variable based on the matrix
