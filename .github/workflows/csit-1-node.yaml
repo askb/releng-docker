@@ -30,9 +30,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
         # Checkout the code repository
-      - name: Delay for 30 seconds
-        run: sleep 30
-        
+
       - name: Setup Jolokia for AAA
         if: matrix.test_suite == 'aaa'
         run: |
@@ -68,6 +66,11 @@ jobs:
       - name: tmp 
         run: |
           docker exec odl-container bash -c "cat /home/user/karaf-0.18.1/etc/org.jolokia.osgi.cfg"
+      
+      
+      - name: Delay for 30 seconds
+        run: sleep 30
+        
       - name: Run Test
         run: |
           # Define test_suite variable based on the matrix
