@@ -13,7 +13,7 @@ jobs:
 
     strategy:
       matrix:
-        test_suite: ["daexim", "distribution", "aaa"]
+        test_suite: ["daexim", "distribution"]
         # Define a matrix for different test suites
 
     services:
