@@ -1,8 +1,10 @@
+---
 name: CSIT-1-Node-Test
 
 on:
   push:
-    # Trigger the workflow on a push event
+    branches:
+      - main
 
 jobs:
   csit:
@@ -16,7 +18,7 @@ jobs:
 
     services:
       opendaylight:
-        image: ${{ vars.REPOSITORY }}/${{ vars.ODL_IMAGE }}
+        image: ${{ vars.DOCKER_REPOSITORY }}/${{ vars.ODL_IMAGE }}
         env:
           FEATURES: odl-restconf,odl-daexim-all,odl-netconf-topology,odl-jolokia
         ports:
@@ -28,28 +30,25 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
         # Checkout the code repository
-      - name: Delay for 30 seconds
-        run: sleep 30
-        # Delay for 30 seconds
+
       - name: Setup Jolokia for AAA
         if: matrix.test_suite == 'aaa'
         run: |
           # Configure Jolokia for the 'aaa' test suite
           docker exec -i odl-container bash -c \
-          'echo "org.jolokia.authMode=service-all" >> /home/user/karaf-0.18.1/etc/org.jolokia.osgi.cfg && \
-          echo "org.jolokia.authMode=basic" >> /home/user/karaf-0.18.1/etc/org.jolokia.osgi.cfg && \
-          echo "org.jolokia.user=admin" >> /home/user/karaf-0.18.1/etc/org.jolokia.osgi.cfg && \
-          echo "org.jolokia.password=admin" >> /home/user/karaf-0.18.1/etc/org.jolokia.osgi.cfg'
+          'echo "org.jolokia.authMode=basic" >> /home/youruser/karaf-0.18.1/etc/org.jolokia.osgi.cfg && \
+          echo "org.jolokia.user=admin" >> /home/youruser/karaf-0.18.1/etc/org.jolokia.osgi.cfg && \
+          echo "org.jolokia.password=admin" >> /home/youruser/karaf-0.18.1/etc/org.jolokia.osgi.cfg'
 
       - name: Setup SSH
         run: |
           # Set up SSH in the container
-          docker exec odl-container bash -c "mkdir -p /home/user/.ssh && touch /home/user/.ssh/authorized_keys"
+          docker exec odl-container bash -c "mkdir -p /home/youruser/.ssh && touch /home/youruser/.ssh/authorized_keys"
 
       - name: Start robot container
         run: |
           # Start the robot container
-          docker run -d --network container:odl-container --name robot ${{ vars.REPOSITORY }}/${{ vars.ROBOT_IMAGE }} tail -f /dev/null
+          docker run -d --network container:odl-container --name robot ${{ vars.DOCKER_REPOSITORY }}/${{ vars.ROBOT_IMAGE }} tail -f /dev/null
 
       - name: Extract id_rsa.pub from the robot container
         id: extract_pubkey
@@ -62,14 +61,12 @@ jobs:
         run: |
           # Add the public key to the OpenDaylight container
           PUB_KEY=$(cat id_rsa.pub)
-          docker exec odl-container bash -c "mkdir -p /home/user/.ssh && echo \"$PUB_KEY\" >> /home/user/.ssh/authorized_keys"
+          docker exec odl-container bash -c "mkdir -p /home/youruser/.ssh && echo \"$PUB_KEY\" >> /home/youruser/.ssh/authorized_keys"
 
       - name: Delay for 30 seconds
         run: sleep 30
         # Delay for 30 seconds
-      - name: cat
-        run: |
-            docker exec odl-container bash -c "cat /home/user/karaf-0.18.1/etc/org.jolokia.osgi.cfg"
+
       - name: Run Test
         run: |
           # Define test_suite variable based on the matrix
@@ -79,17 +76,17 @@ jobs:
           elif [ "${{ matrix.test_suite }}" == "distribution" ]; then
             robot_test_file="karaf_sequence_install.robot karaf_stop.robot size.robot"
           elif [ "${{ matrix.test_suite }}" == "aaa" ]; then
-            robot_test_file="authn"           
+            robot_test_file="authn"
           fi
           # Run robot tests in the appropriate directory
-          docker exec robot bash -c "git clone https://github.com/opendaylight/integration-test.git &&       
-            cd integration-test/csit/suites/${test_suite} && 
+          docker exec robot bash -c "git clone https://github.com/opendaylight/integration-test.git &&
+            cd integration-test/csit/suites/${test_suite} &&
             robot -L debug --variable USER_HOME:/root \
-              --variable WORKSPACE:/home/user \
+              --variable WORKSPACE:/home/youruser \
               -v BUNDLEFOLDER:karaf-0.18.1 \
               -v ODL_STREAM:argon \
               --variable DEFAULT_LINUX_PROMPT:\\\$ \
-              --variable ODL_SYSTEM_USER:user \
+              --variable ODL_SYSTEM_USER:youruser \
               --variable ODL_SYSTEM_IP:opendaylight \
               --variable ODL_SYSTEM_1_IP:opendaylight \
               -v IS_KARAF_APPL:True \
