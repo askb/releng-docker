@@ -36,7 +36,8 @@ jobs:
         run: |
           # Configure Jolokia for the 'aaa' test suite
           docker exec -i odl-container bash -c \
-          'echo "org.jolokia.authMode=basic" >> /home/user/karaf-0.18.1/etc/org.jolokia.osgi.cfg && \
+          'echo "org.jolokia.authMode=service-all" >> /home/user/karaf-0.18.1/etc/org.jolokia.osgi.cfg && \
+          echo "org.jolokia.authMode=basic" >> /home/user/karaf-0.18.1/etc/org.jolokia.osgi.cfg && \
           echo "org.jolokia.user=admin" >> /home/user/karaf-0.18.1/etc/org.jolokia.osgi.cfg && \
           echo "org.jolokia.password=admin" >> /home/user/karaf-0.18.1/etc/org.jolokia.osgi.cfg'
 
